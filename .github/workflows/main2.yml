@@ -1,0 +1,72 @@
+name: Build APK
+
+on:
+
+  push:
+
+    branches:
+
+      - main
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout code
+
+      uses: actions/checkout@v2
+
+    - name: Setup Java
+
+      uses: actions/setup-java@v2
+
+      with:
+
+        java-version: '11'
+
+    - name: Set up Android SDK
+
+      uses: actions/setup-android@v2
+
+      with:
+
+        sdk-version: '31.0.0'
+
+        emulator-version: '30.7.5'
+
+    - name: Grant execute permission for gradlew
+
+      run: chmod +x ./gradlew
+
+    - name: Build with Gradle
+
+      run: |
+
+        ./gradlew assembleDebug || true
+
+    - name: Retry build on failure
+
+      if: failure()
+
+      run: |
+
+        sleep 5m
+
+        ./gradlew assembleDebug || true
+
+    - name: Save build artifacts
+
+      if: always()
+
+      uses: actions/upload-artifact@v2
+
+      with:
+
+        name: built_apk
+
+        path: app/build/outputs/apk/debug/app-debug.apk
+
